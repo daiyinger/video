@@ -354,18 +354,19 @@ int main(int argc, char* argv[])
                     if((l-1) > 0)
 					{
                         memcpy(nalu_payload,n->buf+t*1400+1,l-1);//将nalu最后剩余的l-1(去掉了一个字节的NALU头)字节内容写入sendbuf[14]开始的字符串。
+                        bytes = l-1+14;		//获得sendbuf的长度,为剩余nalu的长度l-1加上rtp_header，FU_INDICATOR,FU_HEADER三个包头共14字节
+                        printf("send ok 81\n");
+                        send( socket1, sendbuf, bytes, 0 );//发送rtp包
+                        t++;
+                        usleep(100);
+                        printf("send ok 2\n");
                     }
                     else
                     {
                         printf("send ok 82 %d\n ",l);
-                        continue;
+                        t++;
                     }
-                    bytes = l-1+14;		//获得sendbuf的长度,为剩余nalu的长度l-1加上rtp_header，FU_INDICATOR,FU_HEADER三个包头共14字节
-					printf("send ok 81\n");
-                    send( socket1, sendbuf, bytes, 0 );//发送rtp包
-					t++;
-					usleep(100);
-                    printf("send ok 2\n");
+                   
 				}
 				else if((t < k) && (0 != t))
 				{
