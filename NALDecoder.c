@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 	}
 	NALU_t *n;							//定义NALU结构指针
 	char* nalu_payload;  
-	char sendbuf[1500];
+	char sendbuf[1024*10];
 	
 	unsigned short seq_num =0;
 	int	bytes=0;
