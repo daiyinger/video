@@ -350,6 +350,7 @@ int main(int argc, char* argv[])
 					fu_hdr->E = 1;
 
 					nalu_payload = &sendbuf[14];//同理将sendbuf[14]的地址赋给nalu_payload
+                    printf("send ok 82\n");
 					memcpy(nalu_payload,n->buf+t*1400+1,l-1);//将nalu最后剩余的l-1(去掉了一个字节的NALU头)字节内容写入sendbuf[14]开始的字符串。
 					bytes = l-1+14;		//获得sendbuf的长度,为剩余nalu的长度l-1加上rtp_header，FU_INDICATOR,FU_HEADER三个包头共14字节
 					printf("send ok 81\n");
