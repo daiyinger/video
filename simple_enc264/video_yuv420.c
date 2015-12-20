@@ -145,6 +145,8 @@ void *pthread_video(int arg)
 		return NULL;
 }
 unsigned char tbuffers[1024*1024];
+unsigned char rgbbuffers[1024*1024];
+extern int jpg2rgb(unsigned char *srcBuf, int src_size, unsigned char *dstBuf);
 //视频采集循环函数
 int video(int num)
 {
@@ -179,7 +181,7 @@ int video(int num)
 			memcpy(databuf->buf,buffers[buf.index].start,buffers[buf.index].length);
 			databuf->datasize=buf.bytesused;
             cnt++;
-            if((fps = fopen("out.jpg","wb")) == NULL)
+            /*if((fps = fopen("out.jpg","wb")) == NULL)
     		{
     			printf("open file error!\n");
     			exit(0);
@@ -203,7 +205,7 @@ int video(int num)
 			//system("cat tmp.yuv >> com.yuv");
             stat("tmp.yuv", &bufs);
             */
-            system("ffmpeg -i out.jpg -s 320x240 -pix_fmt yuv420p tmp.yuv >ffmpeg.log 2>&1 &");
+            /*system("ffmpeg -i out.jpg -s 320x240 -pix_fmt yuv420p tmp.yuv >ffmpeg.log 2>&1 &");
             
             while(stat("tmp.yuv", &bufs) != 0)
 	        {
@@ -211,7 +213,9 @@ int video(int num)
             }
 	        usleep(100000);
             stat("tmp.yuv", &bufs);
-            scale_yuv("tmp.yuv",tbuffers);
+            scale_yuv("tmp.yuv",tbuffers);*/
+            jpg2rgb(databuf->buf,buf.bytesused,rgbbuffers);
+            rgbToYuv420(rgbbuffers,tbuffers);
 			encode_one_frame(tbuffers);
             //system("rm -f out1.jpg");
             system("rm -f tmp.yuv");

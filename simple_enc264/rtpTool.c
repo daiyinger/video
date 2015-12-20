@@ -216,7 +216,7 @@ void dump(NALU_t *n)
 	printf("nal_unit_type: %x\n", n->nal_unit_type);
 }
 
-int main(int argc, char* argv[])
+int rtp_init(void)
 {
 	//my.h264 test.264 test22.264
 	if(argc > 1)
@@ -399,6 +399,11 @@ int main(int argc, char* argv[])
 	//getchar();
 	sleep(1);
 	return 0;
+}
+
+int sendNalu()
+{
+    return 0;
 }
 
 static int FindStartCode2 (unsigned char *Buf)

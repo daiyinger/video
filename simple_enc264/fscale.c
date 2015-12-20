@@ -1,14 +1,24 @@
 #include "libavcodec/avcodec.h"
 #include "libswscale/swscale.h"
 
+#define JPEG2YUV
+
 #define DST_W 640
 #define DST_H 480
+
 #define SRC_W 320
 #define SRC_H 240
-#define SRC_PIX_FMT AV_PIX_FMT_YUV420P
+
+#ifdef JPEG2YUV
+    #define SRC_PIX_FMT AV_PIX_FMT_BGR24
+#else
+    #define SRC_PIX_FMT AV_PIX_FMT_YUV420P
+#endif
 #define DST_PIX_FMT AV_PIX_FMT_YUV420P
+
 #define SRC_BPP 12
 #define DST_BPP 12
+
 #define RESCALE_METHOD SWS_BICUBIC
 //Structures
 uint8_t *src_data[4];
@@ -21,19 +31,20 @@ struct SwsContext *img_convert_ctx;
 int sacle_init(void)
 {
     int ret = 0;
+#ifndef JPEG2YUV
     ret= av_image_alloc(src_data, src_linesize,SRC_W, SRC_H, SRC_PIX_FMT, 1);
 	if (ret< 0) 
     {
 		printf( "Could not allocate source image\n");
 		return -1;
 	}
+#endif
 	ret = av_image_alloc(dst_data, dst_linesize,DST_W, DST_H, DST_PIX_FMT, 1);
 	if (ret< 0) 
     {
 		printf( "Could not allocate destination image\n");
 		return -1;
 	}
-
 	//Init Method 2
 	img_convert_ctx = sws_getContext(SRC_W, SRC_H,SRC_PIX_FMT, DST_W, DST_H, DST_PIX_FMT, 
 										RESCALE_METHOD, NULL, NULL, NULL); 
@@ -77,12 +88,45 @@ int scale_yuv(char *filename, unsigned char* dst_buffer)
     fclose(src_file);
 	return 0;
 }
+//int rgb24 to yuv420
+int rgbToYuv420(uint8_t* RgbBuffer, unsigned char *dstBuf)//第二种方法 用FFMPEG
+{
+    int pos;
+    //struct SwsContext *yuvContext;
+    uint8_t *rgb_src[3]= {RgbBuffer, NULL, NULL};
+    int rgb_stride[3]={3*SRC_W, 0, 0};
+
+    //avpicture_alloc((AVPicture*)(&picture), AV_PIX_FMT_YUV420P,SRC_W*2,SRC_H*2);
+
+    //yuvContext = sws_getContext(SRC_W,SRC_H,AV_PIX_FMT_BGR24,SRC_W*2,
+    //                            SRC_H*2,AV_PIX_FMT_YUV420P,SWS_BICUBIC, NULL, NULL, NULL);
+
+    sws_scale(img_convert_ctx,(const uint8_t * const*)rgb_src, rgb_stride, 0, SRC_H,dst_data, dst_linesize);
+
+    /*dst_data[0] += dst_linesize[0] * (DST_H - 1);
+    dst_linesize[0] *= -1;                      
+    dst_data[1] += dst_linesize[1] * (DST_H / 2 - 1);
+    dst_linesize[1] *= -1;
+    dst_data[2] += dst_linesize[2] * (DST_H / 2 - 1);
+    dst_linesize[2] *= -1;*/
+    
+    pos = 0;
+    memcpy(dstBuf, dst_data[0],DST_W*DST_H);            //Y
+    pos += DST_W*DST_H;
+    memcpy(dstBuf+pos, dst_data[1],DST_W*DST_H/4);      //U
+    pos += DST_W*DST_H/4;
+    memcpy(dstBuf+pos, dst_data[2],DST_W*DST_H/4);      //V
+
+
+}
 
 int end_scale(void)
 {
     sws_freeContext(img_convert_ctx);
 	//free(temp_buffer);
+#ifndef JPEG2YUV
 	av_freep(&src_data[0]);
+#endif
 	av_freep(&dst_data[0]);
     return 0;
 }

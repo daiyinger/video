@@ -1,15 +1,13 @@
 objects = simple_video
 src = simple_code_info.c video_yuv420.c
-simple_video: $(src) video_yuv420.o simple_code_info.o fscale.o jpeg2rgb.o
-	g++ simple_code_info.o video_yuv420.o fscale.o jpeg2rgb.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -pthread -lavformat -lavcodec -lavutil -lswscale
+simple_video: $(src) video_yuv420.o simple_code_info.o fscale.o
+	g++ simple_code_info.o video_yuv420.o fscale.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -pthread -lavformat -lavcodec -lavutil -lswscale
 video_yuv420.o:video_yuv420.c
 	gcc -c video_yuv420.c
 simple_code_info.o:simple_code_info.c simple_code_info.h
 	gcc simple_code_info.c -c  
 fscale.o:fscale.c
 	gcc -c fscale.c 
-jpeg2rgb.o:jpeg2rgb.c
-	gcc -c jpeg2rgb.c 
 info:
 	g++ simple_code_info.cpp -o simple_code_info -lx264 -ldl -pthread
 fscale:
