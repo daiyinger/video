@@ -3,7 +3,13 @@
 //header file   
 //#include "bmp.h"   
 //*************************************************************************************   
-//#include "jpeg.h"   
+//#include "jpeg.h"  
+#include "memory.h"   
+#include "math.h"   
+#include "stdio.h"   
+#include "stdlib.h"
+#include "jpeg2rgb.h"
+
 #pragma pack(1)   
 #define M_SOF0  0xc0   
 #define M_DHT   0xc4   
@@ -13,14 +19,16 @@
 #define M_DRI   0xdd   
 #define M_APP0  0xe0   
    
-static int Zig_Zag[8][8]={{0,1,5,6,14,15,27,28},   
-{2,4,7,13,16,26,29,42},   
-{3,8,12,17,25,30,41,43},   
-{9,11,18,24,37,40,44,53},   
-{10,19,23,32,39,45,52,54},   
-{20,22,33,38,46,51,55,60},   
-{21,34,37,47,50,56,59,61},   
-{35,36,48,49,57,58,62,63}   
+static int Zig_Zag[8][8] = 
+{
+    { 0, 1, 5, 6,14,15,27,28},   
+    { 2, 4, 7,13,16,26,29,42},   
+    { 3, 8,12,17,25,30,41,43},   
+    { 9,11,18,24,37,40,44,53},   
+    {10,19,23,32,39,45,52,54},   
+    {20,22,33,38,46,51,55,60},   
+    {21,34,37,47,50,56,59,61},   
+    {35,36,48,49,57,58,62,63}   
 };   
    
 #define W1 2841 /* 2048*sqrt(2)*cos(1*pi/16) */   
@@ -96,10 +104,7 @@ typedef RGBQUAD * LPRGBQUAD;
    
 //---yk--- add   
    
-#include "memory.h"   
-#include "math.h"   
-#include "stdio.h"   
-#include "stdlib.h"   
+ 
 //macro definition   
 #define WIDTHBYTES(i)    ((i+31)/32*4)//??????????   
 #define PI 3.1415926535   
@@ -176,132 +181,30 @@ int jpg2rgb(unsigned char *srcBuf, int src_size, unsigned char *dstBuf)
 { 
     FILE*  hfjpg;   
     DWORD  ImgSize;   
-    DWORD  BufSize,JpegBufSize;   
-    FILE*  hfbmp;   
-    FILE*  IMGdata;   
-    void *  hJpegBuf;   
-    int  funcret;   
-    DWORD i;   
-    LPBITMAPINFOHEADER lpImgData;   
-       
-    char * hImgData256;   
-       
-    /*if((hfjpg=fopen(JpegFileName,"rb"))==NULL)   
-    {   
-        showerror(FUNC_FILE_ERROR);   
-        return FALSE;   
-    }   
-   
-    //get jpg file length   
-    fseek(hfjpg,0L,SEEK_END);   
-    JpegBufSize=ftell(hfjpg);   
-    //rewind to the beginning of the file   
-    fseek(hfjpg,0L,SEEK_SET);   
-    */
-    //fprintf(stderr,"src size %ld\n",src_size);
-    JpegBufSize = src_size;
-    /*if((hJpegBuf=malloc(JpegBufSize))==NULL)   
-    {   
-        //fclose(hfjpg);   
-        showerror(FUNC_MEMORY_ERROR);      
-        return FALSE;   
-    }   
-    lpJpegBuf=(unsigned char  *)hJpegBuf;   
-    fread((unsigned char  *)hJpegBuf,sizeof( char ),JpegBufSize,hfjpg);   
-    fclose(hfjpg);   
-    */
-    hJpegBuf = srcBuf;
-    lpJpegBuf = (unsigned char  *)hJpegBuf;
-    InitTable();   
-    //fprintf(stderr,"init table ok\n");   
-    if((funcret=InitTag()) != FUNC_OK)   
-    {   
-        // GlobalUnlock(hJpegBuf);   
-        //free(hJpegBuf);   
-        showerror(funcret);   
-        return FALSE;   
-    }   
-    //fprintf(stderr,"init table ok\n");   
-    //create new bitmapfileheader and bitmapinfoheader   
-    memset((char *)&bf,0,sizeof(BITMAPFILEHEADER));    
-    memset((char *)&bi,0,sizeof(BITMAPINFOHEADER));   
-       
-    bi.biSize=(DWORD)sizeof(BITMAPINFOHEADER);   
-    bi.biWidth=(LONG)(ImgWidth);   
-    bi.biHeight=(LONG)(ImgHeight);   
-    bi.biPlanes=1;   
-    bi.biBitCount=24;   
-    bi.biClrUsed=0;   
-    bi.biClrImportant=0;   
-    bi.biCompression=BI_RGB;   
-    NumColors=0;   
-    //fprintf(stderr,"bi.biWidth is %ld\n",bi.biWidth);   
-    //fprintf(stderr,"bi.biBitCount is %ld\n",bi.biBitCount);   
-    LineBytes=(DWORD)WIDTHBYTES(bi.biWidth*bi.biBitCount);   
-    //fprintf(stderr,"LineBytes is %ld\n",LineBytes);   
-    ImgSize=(DWORD)LineBytes*bi.biHeight;//???????   
-    //fprintf(stderr,"size is %ld\n",ImgSize);   
-    bf.bfType=0x4d42;   
-    int a= sizeof(BITMAPFILEHEADER);   
-    int b= sizeof(BITMAPINFOHEADER);   
-    //注意字节对齐问题   
-    //如果没有#pragma pack(1)，a是16   
-    int c=NumColors*sizeof(RGBQUAD);   
-       
-    bf.bfSize=sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER)+NumColors*sizeof(RGBQUAD)+ImgSize;   
-    bf.bfOffBits=54;//(DWORD)(NumColors*sizeof(RGBQUAD)+sizeof(BITMAPFILEHEADER)+sizeof(BITMAPINFOHEADER));   
-    BufSize=bf.bfSize-sizeof(BITMAPFILEHEADER);   
-    // printf("size is %ld\n",BufSize);   
-    if((hImgData=(char*)malloc(BufSize))==NULL)   
-    {   
-        //GlobalUnlock(hJpegBuf);   
-        //free(hJpegBuf); 
-        fprintf(stderr,"malloc error jpeg2rgb\n");   
-        showerror(FUNC_MEMORY_ERROR);   
-        showerror(FUNC_MEMORY_ERROR);   
-        return FALSE;   
-    }   
-    // lpImgData=(LPBITMAPINFOHEADER)GlobalLock(hImgData);    
-    lpImgData=(LPBITMAPINFOHEADER)hImgData;    
-    memcpy(lpImgData,(char *)&bi,sizeof(BITMAPINFOHEADER));   
-    lpPtr=(char *)lpImgData+sizeof(BITMAPINFOHEADER);   
+
+    lpJpegBuf = (unsigned char  *)srcBuf;
+
+    InitTable();    
+    if(InitTag() != FUNC_OK)   
+    {     
+        return -1;   
+    } 
+    
+    LineBytes = (DWORD)WIDTHBYTES(ImgWidth*24);   
+    lpPtr = (char *)dstBuf;
        
     if((SampRate_Y_H==0)||(SampRate_Y_V==0))   
-    {   
-        // GlobalUnlock(hJpegBuf);   
-        //free(hJpegBuf);   
-        //GlobalUnlock(hImgData);   
-        free(hImgData);   
-        hImgData=NULL;   
-        showerror(FUNC_FORMAT_ERROR);   
-        return FALSE ;   
+    {     
+        return -1 ;   
     }   
-       
-    funcret=Decode();   
-    if(funcret==FUNC_OK)   
-    {   
-          
-        //fwrite((LPSTR)&bf,sizeof(BITMAPFILEHEADER),1,hfbmp);    
-        //fwrite((LPSTR)lpImgData,sizeof(char),BufSize,hfbmp);  
-        memcpy(dstBuf, (LPSTR)lpImgData,BufSize);
-                  
-        //fclose(hfbmp);   
-           
-        //  ReleaseDC(hWnd,hDc);   
-        //  GlobalUnlock(hJpegBuf);   
-        //free(hJpegBuf);   
-        //GlobalUnlock(hImgData);   
+         
+    if(Decode() == FUNC_OK)   
+    {     
         return 0;   
     }   
     else   
-    {   
-        //GlobalUnlock(hJpegBuf);   
-        //free(hJpegBuf);   
-        // GlobalUnlock(hImgData);   
-        free(hImgData);   
-        hImgData=NULL;   
-        showerror(funcret);   
-        return 1;   
+    {    
+        return -1;   
     }   
 }
 ////////////////////////////////////////////////////////////////   
@@ -319,7 +222,7 @@ BOOL LoadJpegFile (char *JpegFileName)
        
     char * hImgData256;   
        
-    /*if((hfjpg=fopen(JpegFileName,"rb"))==NULL)   
+    if((hfjpg=fopen(JpegFileName,"rb"))==NULL)   
     {   
         showerror(FUNC_FILE_ERROR);   
         return FALSE;   
@@ -330,7 +233,7 @@ BOOL LoadJpegFile (char *JpegFileName)
     JpegBufSize=ftell(hfjpg);   
     //rewind to the beginning of the file   
     fseek(hfjpg,0L,SEEK_SET);   
-    */
+
     if((hJpegBuf=malloc(JpegBufSize))==NULL)   
     {   
         fclose(hfjpg);   

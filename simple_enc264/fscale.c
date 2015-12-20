@@ -92,23 +92,14 @@ int scale_yuv(char *filename, unsigned char* dst_buffer)
 int rgbToYuv420(uint8_t* RgbBuffer, unsigned char *dstBuf)//第二种方法 用FFMPEG
 {
     int pos;
-    //struct SwsContext *yuvContext;
-    uint8_t *rgb_src[3]= {RgbBuffer, NULL, NULL};
-    int rgb_stride[3]={3*SRC_W, 0, 0};
+    uint8_t *rgb_src[3] = {RgbBuffer, NULL, NULL};
+    int rgb_stride[3] = {3*SRC_W, 0, 0};
 
-    //avpicture_alloc((AVPicture*)(&picture), AV_PIX_FMT_YUV420P,SRC_W*2,SRC_H*2);
-
-    //yuvContext = sws_getContext(SRC_W,SRC_H,AV_PIX_FMT_BGR24,SRC_W*2,
-    //                            SRC_H*2,AV_PIX_FMT_YUV420P,SWS_BICUBIC, NULL, NULL, NULL);
+    //翻转RGB
+    rgb_src[0] += rgb_stride[0]*(SRC_H-1); 
+    rgb_stride[0] *= -1;
 
     sws_scale(img_convert_ctx,(const uint8_t * const*)rgb_src, rgb_stride, 0, SRC_H,dst_data, dst_linesize);
-
-    /*dst_data[0] += dst_linesize[0] * (DST_H - 1);
-    dst_linesize[0] *= -1;                      
-    dst_data[1] += dst_linesize[1] * (DST_H / 2 - 1);
-    dst_linesize[1] *= -1;
-    dst_data[2] += dst_linesize[2] * (DST_H / 2 - 1);
-    dst_linesize[2] *= -1;*/
     
     pos = 0;
     memcpy(dstBuf, dst_data[0],DST_W*DST_H);            //Y
@@ -117,7 +108,7 @@ int rgbToYuv420(uint8_t* RgbBuffer, unsigned char *dstBuf)//第二种方法 用FFMPEG
     pos += DST_W*DST_H/4;
     memcpy(dstBuf+pos, dst_data[2],DST_W*DST_H/4);      //V
 
-
+    return 0;
 }
 
 int end_scale(void)
