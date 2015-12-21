@@ -262,6 +262,8 @@ int decode_jpeg(unsigned char *data,int datasize, int widthPtr, int heightPtr, u
        // ptr += 320*3*y;
 	jpeg_read_scanlines(&cinfo, &(ptr), 1);
 	//break;
+	if(y>=240)
+		break;
         unsigned short color;
         for (x = 0; x < cinfo.output_width; x++) 
         {
