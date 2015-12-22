@@ -324,19 +324,19 @@ int end_encode(void)
 	pHandle = NULL;
 
 	printf("==============end================\n"); 
-	if(pPic_in)
+	if(pPic_in != NULL)
 	{
 		free(pPic_in);
 	}
-	if(pPic_out)
+	if(pPic_out != NULL)
 	{
 		free(pPic_out);
 	}
-	if(pParam)
+	if(pParam != NULL)
 	{
 		free(pParam);
 	}
-	if(fp_dst)
+	if(fp_dst != NULL)
 	{
 		fclose(fp_dst);
 	}
