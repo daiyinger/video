@@ -95,11 +95,14 @@ int main1(int argc, char** argv)
 	pParam->i_timebase_den = pParam->i_fps_num;
 	pParam->i_timebase_num = pParam->i_fps_den;
 	*/
+    
+	pParam->i_fps_num  = 5;
+	//pParam->i_keyint_max = pParam->i_fps_num;
 	pParam->i_csp=csp;
 	x264_param_apply_profile(pParam, x264_profile_names[5]);
 
 	pHandle = x264_encoder_open(pParam);
-
+	fprintf(stderr,"\n%d %d\n",pParam->i_fps_num,pParam->i_fps_den);
 	x264_picture_init(pPic_out);
 	x264_picture_alloc(pPic_in, csp, pParam->i_width, pParam->i_height);
 
@@ -214,7 +217,8 @@ int encode_init(void)
 	pPic_out = (x264_picture_t*)malloc(sizeof(x264_picture_t));
 	pParam = (x264_param_t*)malloc(sizeof(x264_param_t));
 
-	x264_param_default(pParam);
+	//x264_param_default(pParam);
+	x264_param_default_preset(pParam, "fast", "zerolatency");
 	pParam->i_width   = width;
 	pParam->i_height  = height;
 
@@ -236,7 +240,9 @@ int encode_init(void)
 	pParam->i_timebase_den = pParam->i_fps_num;
 	pParam->i_timebase_num = pParam->i_fps_den;
 	*/
-
+	
+	pParam->i_log_level  = X264_LOG_WARNING;//X264_LOG_DEBUG;
+	pParam->i_fps_num = 10;
 	pParam->i_csp=csp;
 
 	x264_param_apply_profile(pParam, x264_profile_names[5]);
