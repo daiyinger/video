@@ -34,6 +34,11 @@ int tcpToolInit(void)
 	//server_addr.sin_addr.s_addr=inet_addr("192.168.1.1");  //用于绑定到一个固定IP,inet_addr用于把数字加格式的ip转化为整形ip
 	server_addr.sin_port=htons(PORT_NUM);         // (将本机器上的short数据转化为网络上的short数据)端口号
 	
+	int on = 1;
+	if(setsockopt( sockfd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on)))
+	{
+	    
+	}	
 	/* 捆绑sockfd描述符到IP地址 */ 
 	if(bind(sockfd,(struct sockaddr *)(&server_addr),sizeof(struct sockaddr))==-1) 
 	{ 
@@ -58,10 +63,17 @@ int tcpToolInit(void)
     }
 } 
 
+unsigned char tmpBuf[1024*100];
 int SendData(unsigned char *Buf, int len)
 {
     int ret;
-    ret = send(new_fd, Buf, len, 0);
+    tmpBuf[0] = 0xFF;
+    tmpBuf[1] = 0xFF;
+    tmpBuf[2] = 0x55;
+    tmpBuf[3] = 0xAA;
+    memcpy(tmpBuf+4,Buf,len);
+    ret = send(new_fd, tmpBuf, len+4, 0);
+    fprintf(stderr," %d\n",len);
     return ret;
 }
 

@@ -3,8 +3,10 @@
 
 #define RGB2YUV    //ÓÉRGBÍ¼Ïñ×ª»»ÎªYUVÍ¼Ïñ
 
-#define DST_W 640
-#define DST_H 480
+//#define DST_W 640
+//#define DST_H 480
+#define DST_W 320
+#define DST_H 240
 
 #define SRC_W 320
 #define SRC_H 240

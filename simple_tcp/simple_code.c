@@ -210,8 +210,8 @@ int encode_init(void)
 	}
 
 	int csp = X264_CSP_I420;
-	int width = 640,height = 480;
-	//int width=320,height=240;
+	//int width = 640,height = 480;
+	int width=320,height=240;
  
 
 
@@ -259,7 +259,7 @@ int encode_init(void)
 	frames = 0;
 	return 0;
 }
-
+unsigned char bufs[1024*100];
 int encode_one_frame(unsigned char *data)
 {
 	int ret = 0;
@@ -280,13 +280,15 @@ int encode_one_frame(unsigned char *data)
 		fprintf(stderr,"Error.\n");
 		return -1;
 	}
-
+	int  pos1 = 0;
 	for (j = 0; j < iNal; ++j)
 	{
-		fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
-        SendData(pNals[j].p_payload, pNals[j].i_payload);
+		//fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
+		//SendData(pNals[j].p_payload, pNals[j].i_payload);i
+		memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
+		pos1 += pNals[j].i_payload;
 	}
-
+	SendData(bufs,pos1);
 	frames++;
 	return ret;
 }
