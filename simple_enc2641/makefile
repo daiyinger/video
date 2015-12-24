@@ -1,7 +1,7 @@
 objects = simple_video
-src = simple_code.c video_main.c jpeg2rgb.c tcpTool.c
-simple_video: $(src) video_main.o simple_code.o fscale.o jpeg2rgb.o tcpTool.o
-	g++ simple_code.o video_main.o fscale.o jpeg2rgb.o tcpTool.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -lpthread -lavformat -lavcodec -lavutil -lswscale
+src = simple_code.c video_main.c jpeg2rgb.c
+simple_video: $(src) video_main.o simple_code.o fscale.o jpeg2rgb.o
+	g++ simple_code.o video_main.o fscale.o jpeg2rgb.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -lpthread -lavformat -lavcodec -lavutil -lswscale
 video_main.o:video_main.c
 	gcc -c video_main.c
 simple_code.o:simple_code.c simple_code.h
@@ -10,8 +10,6 @@ fscale.o:fscale.c
 	gcc -c fscale.c 
 jpeg2rgb.o:jpeg2rgb.c
 	gcc -c jpeg2rgb.c 
-tcpTool.o:tcpTool.c
-	gcc -c tcpTool.c
 info:
 	g++ simple_code.cpp -o simple_code -lx264 -ldl -pthread
 fscale:

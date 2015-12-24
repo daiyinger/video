@@ -284,7 +284,6 @@ int encode_one_frame(unsigned char *data)
 	for (j = 0; j < iNal; ++j)
 	{
 		fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
-        SendData(pNals[j].p_payload, pNals[j].i_payload);
 	}
 
 	frames++;
