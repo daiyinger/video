@@ -40,29 +40,29 @@ pthread_mutex_t g_lock;
 pthread_cond_t g_cond;
 int fd;
 
-//ÉèÖÃÊÓÆµµÄÖÆÊ½¼°¸ñÊ½
+//è®¾ç½®è§†é¢‘çš„åˆ¶å¼åŠæ ¼å¼
 int setMark(void)
 {
     int ret;
-    struct v4l2_capability cap;		//»ñÈ¡ÊÓÆµÉè±¸µÄ¹¦ÄÜ
-    struct v4l2_format fmt;			//ÉèÖÃÊÓÆµµÄ¸ñÊ½
+    struct v4l2_capability cap;		//è·å–è§†é¢‘è®¾å¤‡çš„åŠŸèƒ½
+    struct v4l2_format fmt;			//è®¾ç½®è§†é¢‘çš„æ ¼å¼
 
     do
     {
-        ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);	//²éÑ¯Çı¶¯¹¦ÄÜ
+        ret = ioctl(fd, VIDIOC_QUERYCAP, &cap);	//æŸ¥è¯¢é©±åŠ¨åŠŸèƒ½
     }while(ret == -1 && errno == EAGAIN);
 
-    if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)	//²éÑ¯ÊÓÆµÉè±¸ÊÇ·ñÖ§³ÖÊı¾İÁ÷ÀàĞÍ
+    if(cap.capabilities & V4L2_CAP_VIDEO_CAPTURE)	//æŸ¥è¯¢è§†é¢‘è®¾å¤‡æ˜¯å¦æ”¯æŒæ•°æ®æµç±»å‹
     {
         printf("capability is V4L2_CAP_VIDEO_CAPTURE\n");
     }
     
     memset(&fmt,0,sizeof(fmt));
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;//Êı¾İÁ÷ÀàĞÍ
-    fmt.fmt.pix.width = 320;//¿í£¬±ØĞëÊÇ16µÄ±¶Êı
-    fmt.fmt.pix.height = 240;//¸ß£¬±ØĞëÊÇ16µÄ±¶Êı
-    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;//=V4L2_PIX_FMT_YUYV;// ÊÓÆµÊı¾İ´æ´¢ÀàĞÍ
-    if (ioctl(fd, VIDIOC_S_FMT, &fmt) <0)	//ÉèÖÃÉãÏñÍ·ÊÓÆµ¸ñÊ½
+    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;//æ•°æ®æµç±»å‹
+    fmt.fmt.pix.width = 320;//å®½ï¼Œå¿…é¡»æ˜¯16çš„å€æ•°
+    fmt.fmt.pix.height = 240;//é«˜ï¼Œå¿…é¡»æ˜¯16çš„å€æ•°
+    fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;//=V4L2_PIX_FMT_YUYV;// è§†é¢‘æ•°æ®å­˜å‚¨ç±»å‹
+    if (ioctl(fd, VIDIOC_S_FMT, &fmt) <0)	//è®¾ç½®æ‘„åƒå¤´è§†é¢‘æ ¼å¼
     {
         printf("set format failed\n");
         return -1;
@@ -70,15 +70,15 @@ int setMark(void)
     return 0;
 }
 
-//ÉêÇëÎïÀíÄÚ´æ
+//ç”³è¯·ç‰©ç†å†…å­˜
 int AllocMem(void)
 {
 	int numBufs=0;
-	struct v4l2_requestbuffers  req;	//·ÖÅäÄÚ´æ
-	struct v4l2_buffer buf;				//V4L2ÊÓÆµBuffer
+	struct v4l2_requestbuffers  req;	//åˆ†é…å†…å­˜
+	struct v4l2_buffer buf;				//V4L2è§†é¢‘Buffer
 
-	req.count=4;											//»º´æÊıÁ¿
-	req.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;					//»º´æÀàĞÍ Êı¾İÁ÷
+	req.count=4;											//ç¼“å­˜æ•°é‡
+	req.type=V4L2_BUF_TYPE_VIDEO_CAPTURE;					//ç¼“å­˜ç±»å‹ æ•°æ®æµ
 	req.memory=V4L2_MEMORY_MMAP;							//
 	buffers=calloc(req.count,sizeof(VideoBuffer));
 
@@ -95,7 +95,7 @@ int AllocMem(void)
 		buf.memory = V4L2_MEMORY_MMAP;
 		buf.index = numBufs;
 
-		if (ioctl(fd, VIDIOC_QUERYBUF, &buf) == -1)//¶ÁÈ¡»º´æĞÅÏ¢ 
+		if (ioctl(fd, VIDIOC_QUERYBUF, &buf) == -1)//è¯»å–ç¼“å­˜ä¿¡æ¯ 
 		{
             printf("VIDIOC_QUERYBUF error\n");
             return -1;
@@ -103,19 +103,19 @@ int AllocMem(void)
 		buffers[numBufs].length = buf.length;
 		buffers[numBufs].start = mmap(NULL,buf.length,
 						            PROT_READ | PROT_WRITE,
-						            MAP_SHARED,fd, buf.m.offset);//×ª»»³ÉÏà¶ÔµØÖ·
+						            MAP_SHARED,fd, buf.m.offset);//è½¬æ¢æˆç›¸å¯¹åœ°å€
 		if(buffers[numBufs].start == MAP_FAILED)
 		{
 			return -1;
 		}
-		if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)//·ÅÈë»º´æ¶ÓÁĞ
+		if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)//æ”¾å…¥ç¼“å­˜é˜Ÿåˆ—
 		{
 			return -1;
 		}
 	}
 }
 
-//¿ªÆôÊÓÆµ²É¼¯
+//å¼€å¯è§†é¢‘é‡‡é›†
 int video_on()
 {
     enum v4l2_buf_type type;
@@ -128,7 +128,7 @@ int video_on()
 }
 void video_off(void);
 FILE *fps;
-//ÊÓÆµ²É¼¯Ïß³Ìº¯Êı
+//è§†é¢‘é‡‡é›†çº¿ç¨‹å‡½æ•°
 void *pthread_video(int arg)
 {
     //pthread_detach(pthread_self());
@@ -141,7 +141,7 @@ void *pthread_video(int arg)
 }
 unsigned char tbuffers[1024*1024];
 unsigned char rgbBuffers[1024*1024];
-//ÊÓÆµ²É¼¯Ñ­»·º¯Êı
+//è§†é¢‘é‡‡é›†å¾ªç¯å‡½æ•°
 int video(int num)
 {
     char name[20];
@@ -177,7 +177,7 @@ int video(int num)
     fprintf(stderr,"\n");
     return 0;
 }
-//¹Ø±ÕÊÓÆµ²É¼¯
+//å…³é—­è§†é¢‘é‡‡é›†
 void video_off()
 {
     enum v4l2_buf_type type;
@@ -207,7 +207,7 @@ int main(int argc,char **argv)
     
     //signal(SIGPIPE,SIG_IGN);
     //fd=open("dev/video0",O_RDWR | O_NONBLOCK,0);
-    fd = open("/dev/video0",O_RDWR,0);	//´ò¿ªÊÓÆµÉè±¸
+    fd = open("/dev/video0",O_RDWR,0);	//æ‰“å¼€è§†é¢‘è®¾å¤‡
     if(fd == -1)
     {
         perror("open");
@@ -221,8 +221,8 @@ int main(int argc,char **argv)
     sigIntHandler.sa_flags = 0;  
 
     sigaction(SIGINT, &sigIntHandler, NULL);  
-    setMark();	                            //ÉèÖÃV4L2¸ñÊ½
-    AllocMem();	                        //ÉèÖÃÄÚ´æÓ³Éä
+    setMark();	                            //è®¾ç½®V4L2æ ¼å¼
+    AllocMem();	                        //è®¾ç½®å†…å­˜æ˜ å°„
 
     if(argc > 1)
     {
