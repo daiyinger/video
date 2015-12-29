@@ -171,7 +171,13 @@ int jpg2rgb(unsigned char *srcBuf, int src_size, unsigned char *dstBuf)
     {     
         return -1 ;   
     }   
-    fprintf(stderr,"*");     
+    fprintf(stderr,"*");   
+    if(ImgWidth != 320 || ImgHeight != 240)
+    {
+	fprintf(stderr,"img size get error!\n");
+	return -1;
+    } 
+    printf("H%d V%d\n",SampRate_Y_H,SampRate_Y_V); 
     if(Decode() == FUNC_OK)   
     {     
         return 0;   
@@ -543,7 +549,10 @@ void StoreBuffer()
                     *lpbmp++=G;   
                     *lpbmp++=R;   
                        
-                       
+                    if(((unsigned int)lpbmp-(unsigned int )lpPtr) > 320*240*3)
+		    {
+			fprintf(stderr," pos %d\n",((unsigned int)lpbmp-(unsigned int)lpPtr));
+		    }    
                 }   
                 else  break;   
             }   

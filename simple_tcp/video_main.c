@@ -151,6 +151,7 @@ int video(int num)
     buf.memory = V4L2_MEMORY_MMAP;
     buf.index = 0;
     int cnt = 0;
+    int dqErrCnt = 0;	//获取数据失败计数
     
     while(num > 0)
     {
@@ -158,7 +159,26 @@ int video(int num)
         
         if (ioctl(fd, VIDIOC_DQBUF, &buf) == -1)
         {
-            return -1;
+             fprintf(stderr,"VIDIOC_DQBUF error!\n");
+	     if(dqErrCnt < 5)
+	     {
+		dqErrCnt++;
+	    enum v4l2_buf_type type;
+	 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;  
+    int ret = ioctl(fd, VIDIOC_STREAMOFF, &type);
+    if(ret == -1)
+    {
+    	printf("vidio OFF error!\n");
+}
+		sleep(1);
+		video_on();
+		sleep(1);
+		continue;
+	     }
+	     else
+	     {
+		return -1;
+	     }	
         }
         memcpy(databuf->buf, buffers[buf.index].start, buffers[buf.index].length);
         databuf->datasize = buf.bytesused;
