@@ -20,9 +20,9 @@
 #include <netinet/ip.h>
 #include "simple_code.h"
 #include "fscale.h"
-#include "jpeg2rgb.h"
+//#include "jpeg2rgb.h"
 #include "tcpTool.h"
-
+#include "tinyjpeg.h"
 
 typedef struct VideoBuffer
 {
@@ -165,14 +165,16 @@ int video(int num)
 
         cnt++;
         fprintf(stderr,". ");
-        if(jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers) != 0)
+	clock_t clockStart = clock();
+        if(jpg2yuv(databuf->buf, buf.bytesused, tbuffers) != 0)
 	{
 	    fprintf(stderr,"jpg2rgb error!\n");
 	    continue;
 	} 
-        fprintf(stderr,"-");
-        rgbToYuv420(rgbBuffers,tbuffers);
+        fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
+        //rgbToYuv420(rgbBuffers,tbuffers);
         encode_one_frame(tbuffers);
+        //encode_one_frame(tbuffers);
         if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
             return -1;

@@ -167,11 +167,11 @@ int jpg2rgb(unsigned char *srcBuf, int src_size, unsigned char *dstBuf)
     LineBytes = (DWORD)WIDTHBYTES(ImgWidth*24);   
     lpPtr = (char *)dstBuf;
 
-    if((SampRate_Y_H==0)||(SampRate_Y_V==0)/*||(SampRate_U_H)||(SampRate_U_V)||(SampRate_V_H)||(SampRate_V_V)*/)   
+    if((SampRate_Y_H==0)||(SampRate_Y_V==0)||(SampRate_U_H == 0)||(SampRate_U_V == 0)||(SampRate_V_H == 0)||(SampRate_V_V == 0))   
     {     
         return -1 ;   
     }   
-         
+    fprintf(stderr,"*");     
     if(Decode() == FUNC_OK)   
     {     
         return 0;   
