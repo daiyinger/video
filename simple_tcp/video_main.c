@@ -163,15 +163,16 @@ int video(int num)
 	     if(dqErrCnt < 5)
 	     {
 		dqErrCnt++;
-	    enum v4l2_buf_type type;
-	 type = V4L2_BUF_TYPE_VIDEO_CAPTURE;  
-    int ret = ioctl(fd, VIDIOC_STREAMOFF, &type);
-    if(ret == -1)
-    {
-    	printf("vidio OFF error!\n");
-}
+		/*enum v4l2_buf_type type;
+		type = V4L2_BUF_TYPE_VIDEO_CAPTURE;  
+		int ret = ioctl(fd, VIDIOC_STREAMOFF, &type);
+		if(ret == -1)
+		{
+		   printf("vidio OFF error!\n");
+		}
 		sleep(1);
 		video_on();
+		*/
 		sleep(1);
 		continue;
 	     }
@@ -188,11 +189,15 @@ int video(int num)
         if(jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers) != 0)
 	{
 	    fprintf(stderr,"jpg2rgb error!\n");
-	    continue;
+	    printf("jpg2rgb error!\n");
+	   // continue;
 	} 
-        fprintf(stderr,"-");
-        rgbToYuv420(rgbBuffers,tbuffers);
-        encode_one_frame(tbuffers);
+	else
+	{
+	    fprintf(stderr,"-");
+	    rgbToYuv420(rgbBuffers,tbuffers);
+	    encode_one_frame(tbuffers);
+	}
         if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
             return -1;

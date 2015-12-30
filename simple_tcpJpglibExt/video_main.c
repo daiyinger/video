@@ -169,12 +169,15 @@ int video(int num)
         if(jpg2yuv(databuf->buf, buf.bytesused, tbuffers) != 0)
 	{
 	    fprintf(stderr,"jpg2rgb error!\n");
-	    continue;
-	} 
-        fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
-        //rgbToYuv420(rgbBuffers,tbuffers);
-        encode_one_frame(tbuffers);
-        //encode_one_frame(tbuffers);
+	    //continue;
+	}
+	else
+	{ 
+	    fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
+	    //rgbToYuv420(rgbBuffers,tbuffers);
+	    encode_one_frame(tbuffers);
+	    //encode_one_frame(tbuffers);
+	}
         if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
             return -1;

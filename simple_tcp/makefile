@@ -1,7 +1,7 @@
 objects = simple_video
 src = simple_code.c video_main.c jpeg2rgb.c tcpTool.c
 simple_video: $(src) video_main.o simple_code.o fscale.o jpeg2rgb.o tcpTool.o
-	g++ -g -rdynamic simple_code.o video_main.o fscale.o jpeg2rgb.o tcpTool.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -lpthread -lavformat -lavcodec -lavutil -lswscale
+	g++ -g -rdynamic simple_code.o video_main.o fscale.o jpeg2rgb.o tcpTool.o  -L/usr/local/ffmpeg/lib -lx264 -ldl -lpthread -lavformat -lavcodec -lavutil -lswscale
 video_main.o:video_main.c
 	gcc -c -g -rdynamic video_main.c
 simple_code.o:simple_code.c simple_code.h
