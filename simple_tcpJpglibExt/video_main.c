@@ -36,7 +36,7 @@ typedef struct data
 }buf_t;
 buf_t *databuf;
 static VideoBuffer *buffers = NULL;
-pthread_mutex_t g_lock;
+pthread_mutex_t g_lock,g_lock1;
 pthread_cond_t g_cond;
 int fd;
 
@@ -140,18 +140,43 @@ void *pthread_video(int arg)
     return NULL;
 }
 unsigned char tbuffers[1024*1024];
-unsigned char rgbBuffers[1024*1024];
+void *pthread_encode(void *arg)
+{
+    int cnt = 0;
+
+    pthread_detach(pthread_self());
+    fprintf(stderr,"start!\n");
+    pthread_mutex_lock(&g_lock);
+    while(1)
+    {
+        pthread_mutex_lock(&g_lock);
+        //pthread_cond_wait(&g_cond, &g_lock);
+        cnt++;
+        fprintf(stderr,". ");
+	    clock_t clockStart = clock();
+        if(jpg2yuv(databuf->buf, databuf->datasize, tbuffers) != 0)
+	    {
+	        fprintf(stderr,"jpg2rgb error!\n");
+	        //continue;
+	    }
+	    else
+	    { 
+	        fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
+	        //rgbToYuv420(rgbBuffers,tbuffers);
+	        encode_one_frame(tbuffers);
+	        //encode_one_frame(tbuffers);
+	    }
+        pthread_mutex_unlock(&g_lock1);
+    }
+}
 //视频采集循环函数
 int video(int num)
 {
-    char name[20];
     struct v4l2_buffer buf;
     memset(&buf,0,sizeof(buf));
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     buf.memory = V4L2_MEMORY_MMAP;
     buf.index = 0;
-    int cnt = 0;
-    
     while(num > 0)
     {
         num--;
@@ -160,24 +185,13 @@ int video(int num)
         {
             return -1;
         }
+        //fprintf(stderr,"sample one frame!\n");
+        pthread_mutex_lock(&g_lock1);
         memcpy(databuf->buf, buffers[buf.index].start, buffers[buf.index].length);
         databuf->datasize = buf.bytesused;
-
-        cnt++;
-        fprintf(stderr,". ");
-	clock_t clockStart = clock();
-        if(jpg2yuv(databuf->buf, buf.bytesused, tbuffers) != 0)
-	{
-	    fprintf(stderr,"jpg2rgb error!\n");
-	    //continue;
-	}
-	else
-	{ 
-	    fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
-	    //rgbToYuv420(rgbBuffers,tbuffers);
-	    encode_one_frame(tbuffers);
-	    //encode_one_frame(tbuffers);
-	}
+        //pthread_cond_signal(&g_cond);
+        pthread_mutex_unlock(&g_lock);
+        usleep(1000);
         if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
             return -1;
@@ -213,6 +227,8 @@ int main(int argc,char **argv)
 {
     int ret;
     int num;
+
+    pthread_t thread_enc;
     
     //signal(SIGPIPE,SIG_IGN);
     //fd=open("dev/video0",O_RDWR | O_NONBLOCK,0);
@@ -230,6 +246,11 @@ int main(int argc,char **argv)
     sigIntHandler.sa_flags = 0;  
 
     sigaction(SIGINT, &sigIntHandler, NULL);  
+    
+    pthread_mutex_init(&g_lock, NULL);
+    pthread_mutex_init(&g_lock1, NULL);
+    pthread_cond_init(&g_cond, NULL);
+
     setMark();	                            //设置V4L2格式
     AllocMem();	                        //设置内存映射
 
@@ -250,6 +271,7 @@ int main(int argc,char **argv)
         fprintf(stderr,"sacle_init error \n");
     }
     tcpToolInit();
+    pthread_create(&thread_enc, NULL, pthread_encode, NULL);
     pthread_video(num);
     usleep(1000);
     end_encode();
