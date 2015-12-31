@@ -150,11 +150,12 @@ DWORD   sizei,sizej;
 short   restart;   
 static  long iclip[1024];   
 static  long *iclp;   
- 
 int jpg2rgb(unsigned char *srcBuf, int src_size, unsigned char *dstBuf)
 { 
     FILE*  hfjpg;   
     DWORD  ImgSize;   
+
+    char name[20];
 
     lpJpegBuf = (unsigned char  *)srcBuf;
 
@@ -770,11 +771,11 @@ void IQtIZzMCUComponent(short flag)
             IQtIZzBlock(pMCUBuffer+(i*H+j)*64,pQtZzMCUBuffer+(i*H+j)*64,flag);   
 }   
 //
-int buffer2[8][8];   
 void IQtIZzBlock(short  *s ,int * d,short flag)   
 {   
     short i,j;   
     short tag;   
+    int buffer2[8][8];   
     short *pQt;   
     int *buffer1;   
     short offset;   
@@ -920,25 +921,22 @@ void idctcol(int * blk)
     x0 -= x2;   
     x2 = (181*(x4+x5)+128)>>8;   
     x4 = (181*(x4-x5)+128)>>8;  
-    if((unsigned int)(blk-(int *)buffer2) >= (sizeof(buffer2)/sizeof(int)-8))
+    if((abs((x7+x1)>>14) >= 512) || (abs((x3+x2)>>14) >= 512) 
+        || (abs((x0+x4)>>14) >= 512) || (abs((x8+x6)>>14) >= 512)
+        || (abs((x8-x6)>>14) >= 512) || (abs((x0-x4)>>14) >= 512)
+        || (abs((x3-x2)>>14) >= 512) || (abs((x7-x1)>>14) >= 512))
     {
-	printf(" %x \n",blk); 
-	system("sync");
-	sleep(1);
+	    printf(" x7 %d x1 %d \n",x7,x1); 
+	    fprintf(stderr," x7 %d x1 %d \n",x7,x1); 
+	    return;
     }
-    //usleep(1);
-    if(((x7+x1)>>14) >= 512 || ((x7-x1)>>14) >= 512)
-    {
-	printf(" x7 %d x1 %d \n",x7,x1); 
-	system("sync");
-	sleep(1);
-    }//fourth stage   
-    blk[8*0] = iclp[(x7+x1)>>14];   
-    blk[8*1] = iclp[(x3+x2)>>14];   
-    blk[8*2] = iclp[(x0+x4)>>14];   
-    blk[8*3] = iclp[(x8+x6)>>14];   
-    blk[8*4] = iclp[(x8-x6)>>14];   
-    blk[8*5] = iclp[(x0-x4)>>14];   
-    blk[8*6] = iclp[(x3-x2)>>14];   
-    blk[8*7] = iclp[(x7-x1)>>14];   
+    //fourth stage   
+    blk[8*0] = iclp[((x7+x1)>>14)];   
+    blk[8*1] = iclp[((x3+x2)>>14)];   
+    blk[8*2] = iclp[((x0+x4)>>14)];   
+    blk[8*3] = iclp[((x8+x6)>>14)];   
+    blk[8*4] = iclp[((x8-x6)>>14)];   
+    blk[8*5] = iclp[((x0-x4)>>14)];   
+    blk[8*6] = iclp[((x3-x2)>>14)];   
+    blk[8*7] = iclp[((x7-x1)>>14)];   
 }   
