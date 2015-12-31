@@ -1,12 +1,12 @@
 /**
- * YUV格式的像素数据编码为H.264码流
- * 基于libx264的视频编码器
+* YUV格式的像素数据编码为H.264码流
+* 基于libx264的视频编码器
 */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "stdint.h"
- 
+
 #if defined ( __cplusplus)
 extern "C"
 {
@@ -126,49 +126,55 @@ int end_encode(void)
 				break;
 			}
 			printf("Flush 1 frame. i=%d cnt=%d\n",i,cnt++);
+			int  pos1 = 0;
+			bufs[pos1++] = 0xFF;
+			bufs[pos1++] = 0xFF;
+			bufs[pos1++] = 0x55;
+			bufs[pos1++] = 0xAA;
 			for (j = 0; j < iNal; ++j)
 			{
-				fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
-                SendData(pNals[j].p_payload, pNals[j].i_payload);
+				memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
+				pos1 += pNals[j].i_payload;
 			}
+			SendData(bufs,pos1);
 			i++;
-		}
-	}
-	else
-	{
-		//fprintf(stderr,"end code error!\n");
-		ret = -1;
-	}
+	    	}
+    	}
+    else
+    {
+	    //fprintf(stderr,"end code error!\n");
+	ret = -1;
+    }
 
-	if(pPic_in)
-	{
-		x264_picture_clean(pPic_in);
-	}
+    if(pPic_in)
+    {
+	x264_picture_clean(pPic_in);
+    }
 
-	if(pHandle)
-	{
-		x264_encoder_close(pHandle);
-	}
-	pHandle = NULL;
+    if(pHandle)
+    {
+	x264_encoder_close(pHandle);
+    }
+    pHandle = NULL;
 
-	printf("==============end================\n"); 
-	if(pPic_in != NULL)
-	{
-		free(pPic_in);
-	}
-	if(pPic_out != NULL)
-	{
-		free(pPic_out);
-	}
-	if(pParam != NULL)
-	{
-		free(pParam);
-	}
-	if(fp_dst != NULL)
-	{
-		fclose(fp_dst);
-	}
+    printf("==============end================\n"); 
+    if(pPic_in != NULL)
+    {
+	free(pPic_in);
+    }
+    if(pPic_out != NULL)
+    {
+	free(pPic_out);
+    }
+    if(pParam != NULL)
+    {
+	free(pParam);
+    }
+    if(fp_dst != NULL)
+    {
+	fclose(fp_dst);
+    }
 
-	return ret;
+    return ret;
 }
 

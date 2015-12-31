@@ -55,12 +55,12 @@ int tcpToolInit(void)
 
 	
     /* 服务器阻塞,直到客户程序建立连接 */ 
-    sin_size=sizeof(struct sockaddr_in); 
-    if((new_fd = accept(sockfd,(struct sockaddr *)(&client_addr),&sin_size)) == -1) 
-    { 
+	sin_size=sizeof(struct sockaddr_in); 
+   if((new_fd = accept(sockfd,(struct sockaddr *)(&client_addr),&sin_size)) == -1) 
+   	 { 
         fprintf(stderr,"Accept error:%s\n\a",strerror(errno)); 
         exit(-1); 
-    }
+   	 }
 } 
 
 int SendData(unsigned char *Buf, int len)
