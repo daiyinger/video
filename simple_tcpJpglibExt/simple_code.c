@@ -95,10 +95,12 @@ int encode_one_frame(unsigned char *data)
 		return -1;
 	}
 	int  pos1 = 0;
+	bufs[pos1++] = 0xFF;
+	bufs[pos1++] = 0xFF;
+	bufs[pos1++] = 0x55;
+	bufs[pos1++] = 0xAA;
 	for (j = 0; j < iNal; ++j)
 	{
-		//fwrite(pNals[j].p_payload, 1, pNals[j].i_payload, fp_dst);
-		//SendData(pNals[j].p_payload, pNals[j].i_payload);i
 		memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
 		pos1 += pNals[j].i_payload;
 	}

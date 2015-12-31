@@ -63,17 +63,11 @@ int tcpToolInit(void)
     }
 } 
 
-unsigned char tmpBuf[1024*100];
 int SendData(unsigned char *Buf, int len)
 {
     static int frame = 1;
     int ret;
-    tmpBuf[0] = 0xFF;
-    tmpBuf[1] = 0xFF;
-    tmpBuf[2] = 0x55;
-    tmpBuf[3] = 0xAA;
-    memcpy(tmpBuf+4,Buf,len);
-    ret = send(new_fd, tmpBuf, len+4, 0);
+    ret = send(new_fd, Buf, len, 0);
     fprintf(stderr," %d frame: %d\n",len,frame++);
     return ret;
 }
