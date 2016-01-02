@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "stdint.h"
-
+#include "simple_code.h"
 #if defined ( __cplusplus)
 extern "C"
 {
@@ -101,10 +101,16 @@ int encode_one_frame(unsigned char *data)
 	bufs[pos1++] = 0xAA;
 	for (j = 0; j < iNal; ++j)
 	{
+#ifdef WRITE_TO_FILE	    
+		fwrite(pNals[j].p_payload,pNals[j].i_payload,1,fp_dst);
+#else
 		memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
 		pos1 += pNals[j].i_payload;
+#endif
 	}
+#ifndef WRITE_TO_FILE	    
 	SendData(bufs,pos1);
+#endif
 	frames++;
 	return ret;
 }
@@ -133,10 +139,16 @@ int end_encode(void)
 			bufs[pos1++] = 0xAA;
 			for (j = 0; j < iNal; ++j)
 			{
+#ifdef WRITE_TO_FILE	    
+				fwrite(pNals[j].p_payload,pNals[j].i_payload,1,fp_dst);
+#else
 				memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
 				pos1 += pNals[j].i_payload;
+#endif
 			}
+#ifndef WRITE_TO_FILE	    
 			SendData(bufs,pos1);
+#endif
 			i++;
 	    	}
     	}

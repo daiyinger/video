@@ -18,8 +18,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
-#include "simple_code.h"
-#include "fscale.h"
 #include "jpeg2rgb.h"
 
 
@@ -58,8 +56,10 @@ int setMark(void)
     
     memset(&fmt,0,sizeof(fmt));
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;//数据流类型
-    fmt.fmt.pix.width = 320;//宽，必须是16的倍数
-    fmt.fmt.pix.height = 240;//高，必须是16的倍数
+    //fmt.fmt.pix.width = 320;//宽，必须是16的倍数
+    //fmt.fmt.pix.height = 240;//高，必须是16的倍数
+    fmt.fmt.pix.width = 480;//宽，必须是16的倍数
+    fmt.fmt.pix.height = 320;//高，必须是16的倍数
     fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;//=V4L2_PIX_FMT_YUYV;// 视频数据存储类型
     if (ioctl(fd, VIDIOC_S_FMT, &fmt) <0)	//设置摄像头视频格式
     {
@@ -138,6 +138,26 @@ void *pthread_video(int arg)
 
     return NULL;
 }
+int writeFile(char *name,unsigned char *data, int len)
+{
+    FILE *fp;
+    char namedst[40] = "pic/";
+    if(access("pic",F_OK) != 0)
+    {
+	system("mkdir pic");
+    }
+    strcat(namedst,name);
+    if((fp = fopen(namedst, "wb")) == NULL)
+    {
+	fprintf(stderr,"open file error!\n");
+	return -1;
+    }
+    fwrite(data,len,1,fp);
+    fclose(fp);
+    return 0;
+}
+
+#define WRITE_TO_FILE	
 unsigned char tbuffers[1024*1024];
 unsigned char rgbBuffers[1024*1024];
 //视频采集循环函数
@@ -150,7 +170,8 @@ int video(int num)
     buf.memory = V4L2_MEMORY_MMAP;
     buf.index = 0;
     int cnt = 0;
-    
+    int databytes = 0;
+    unsigned int seconds= time((time_t*)NULL); 
     while(num > 0)
     {
         num--;
@@ -161,14 +182,26 @@ int video(int num)
         }
         memcpy(databuf->buf, buffers[buf.index].start, buffers[buf.index].length);
         databuf->datasize = buf.bytesused;
-
+	databytes += databuf->datasize;
         cnt++;
         fprintf(stderr,". ");
-        jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers); 
+        //jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers); 
         fprintf(stderr,"-");
-        rgbToYuv420(rgbBuffers,tbuffers);
-        encode_one_frame(tbuffers);
-        if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
+	if(seconds != time((time_t *)NULL))
+	{	
+	    seconds = time((time_t *)NULL);    
+	    fprintf(stderr," data:%d\n",databytes);
+	    databytes = 0;
+	}
+#ifdef WRITE_TO_FILE	
+	sprintf(name,"%d.jpg",cnt);
+	if(cnt > 200)
+	{
+	    writeFile(name,databuf->buf,databuf->datasize);	
+	    usleep(1000000);
+	}
+#endif 
+	if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
             return -1;
         }
@@ -230,17 +263,7 @@ int main(int argc,char **argv)
     {
         num = 1;
     }
-    if(encode_init() != 0)
-    {
-        fprintf(stderr,"encode_init error \n");
-    }
-    if(sacle_init() != 0)
-    {
-        fprintf(stderr,"sacle_init error \n");
-    }
     pthread_video(num);
     usleep(1000);
-    end_encode();
-    end_scale();
     return 0;
 }
