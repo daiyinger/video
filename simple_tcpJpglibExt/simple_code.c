@@ -73,18 +73,18 @@ int encode_init(void)
 	frames = 0;
 	return 0;
 }
-unsigned char bufs[1024*100];
-int encode_one_frame(unsigned char *data)
+
+int encode_one_frame(unsigned char *src_data, unsigned char *dst_data, int *retLen)
 {
 	int ret = 0;
 	int j = 0;
 	int pos = 0;
 
-	memcpy(pPic_in->img.plane[0], data, y_size);     //Y
+	memcpy(pPic_in->img.plane[0], src_data, y_size);     //Y
 	pos += y_size;
-	memcpy(pPic_in->img.plane[1], data+pos, y_size/4);     //U
+	memcpy(pPic_in->img.plane[1], src_data+pos, y_size/4);     //U
 	pos += y_size/4;
-	memcpy(pPic_in->img.plane[2], data+pos, y_size/4);     //V
+	memcpy(pPic_in->img.plane[2], src_data+pos, y_size/4);     //V
 
 	pPic_in->i_pts = frames;
 
@@ -94,23 +94,20 @@ int encode_one_frame(unsigned char *data)
 		fprintf(stderr,"Error.\n");
 		return -1;
 	}
-	int  pos1 = 0;
-	bufs[pos1++] = 0xFF;
-	bufs[pos1++] = 0xFF;
-	bufs[pos1++] = 0x55;
-	bufs[pos1++] = 0xAA;
+    int pos1 = 0;
 	for (j = 0; j < iNal; ++j)
 	{
 #ifdef WRITE_TO_FILE	    
 		fwrite(pNals[j].p_payload,pNals[j].i_payload,1,fp_dst);
 #else
-		memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
-		pos1 += pNals[j].i_payload;
+        if(dst_data != NULL)
+		{
+            memcpy(dst_data+pos1,pNals[j].p_payload,pNals[j].i_payload);
+		    pos1 += pNals[j].i_payload;
+        }
 #endif
 	}
-#ifndef WRITE_TO_FILE	    
-	SendData(bufs,pos1);
-#endif
+    *retLen = pos1;
 	frames++;
 	return ret;
 }
@@ -132,59 +129,50 @@ int end_encode(void)
 				break;
 			}
 			printf("Flush 1 frame. i=%d cnt=%d\n",i,cnt++);
-			int  pos1 = 0;
-			bufs[pos1++] = 0xFF;
-			bufs[pos1++] = 0xFF;
-			bufs[pos1++] = 0x55;
-			bufs[pos1++] = 0xAA;
 			for (j = 0; j < iNal; ++j)
 			{
 #ifdef WRITE_TO_FILE	    
 				fwrite(pNals[j].p_payload,pNals[j].i_payload,1,fp_dst);
 #else
-				memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
-				pos1 += pNals[j].i_payload;
+				//memcpy(bufs+pos1,pNals[j].p_payload,pNals[j].i_payload);
+				//pos1 += pNals[j].i_payload;
 #endif
 			}
-#ifndef WRITE_TO_FILE	    
-			SendData(bufs,pos1);
-#endif
 			i++;
-	    	}
-    	}
+	    }
+    }
     else
     {
-	    //fprintf(stderr,"end code error!\n");
-	ret = -1;
+	    ret = -1;
     }
 
     if(pPic_in)
     {
-	x264_picture_clean(pPic_in);
+	    x264_picture_clean(pPic_in);
     }
 
     if(pHandle)
     {
-	x264_encoder_close(pHandle);
+	    x264_encoder_close(pHandle);
     }
     pHandle = NULL;
 
     printf("==============end================\n"); 
     if(pPic_in != NULL)
     {
-	free(pPic_in);
+	    free(pPic_in);
     }
     if(pPic_out != NULL)
     {
-	free(pPic_out);
+	    free(pPic_out);
     }
     if(pParam != NULL)
     {
-	free(pParam);
+	    free(pParam);
     }
     if(fp_dst != NULL)
     {
-	fclose(fp_dst);
+	    fclose(fp_dst);
     }
 
     return ret;

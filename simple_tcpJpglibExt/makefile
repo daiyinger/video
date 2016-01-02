@@ -1,8 +1,8 @@
 objects = simple_video
-src = simple_code.c video_main.c tcpTool.c
+src = simple_code.c video_main.c tcpTool.c tcpTool.h
 simple_video: $(src) video_main.o simple_code.o fscale.o tcpTool.o tinyjpeg.o jidctflt.o
 	g++ simple_code.o video_main.o fscale.o tinyjpeg.o jidctflt.o tcpTool.o -o simple_video -L/usr/local/ffmpeg/lib -lx264 -ldl -lpthread -lavformat -lavcodec -lavutil -lswscale
-video_main.o:video_main.c
+video_main.o:video_main.c 
 	gcc -c video_main.c
 simple_code.o:simple_code.c simple_code.h
 	gcc simple_code.c -c  

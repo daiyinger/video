@@ -20,7 +20,6 @@
 #include <netinet/ip.h>
 #include "simple_code.h"
 #include "fscale.h"
-//#include "jpeg2rgb.h"
 #include "tcpTool.h"
 #include "tinyjpeg.h"
 
@@ -38,6 +37,7 @@ buf_t *databuf;
 static VideoBuffer *buffers = NULL;
 pthread_mutex_t g_lock,g_lock1;
 pthread_cond_t g_cond;
+int exitFlag = 0;
 int fd;
 
 //设置视频的制式及格式
@@ -126,6 +126,7 @@ int video_on()
         return -1;
     }
 }
+
 void video_off(void);
 FILE *fps;
 //视频采集线程函数
@@ -140,34 +141,38 @@ void *pthread_video(int arg)
     return NULL;
 }
 unsigned char tbuffers[1024*1024];
+unsigned char Sendbufs[1024*100];
 void *pthread_encode(void *arg)
 {
     int cnt = 0;
+    unsigned char *ptrSendDataBuf;   //发送Buffer数据指针
+    int encodeDatalen = 0;
 
-    pthread_detach(pthread_self());
+    ptrSendDataBuf = Sendbufs + 4;  //发送的报文是4个字节的头加数据
+
+    //pthread_detach(pthread_self());
     fprintf(stderr,"start!\n");
     pthread_mutex_lock(&g_lock);
-    while(1)
+    while(exitFlag == 0)
     {
         pthread_mutex_lock(&g_lock);
-        //pthread_cond_wait(&g_cond, &g_lock);
         cnt++;
         fprintf(stderr,". ");
 	    clock_t clockStart = clock();
         if(jpg2yuv(databuf->buf, databuf->datasize, tbuffers) != 0)
 	    {
 	        fprintf(stderr,"jpg2rgb error!\n");
-	        //continue;
 	    }
 	    else
 	    { 
 	        fprintf(stderr,"- %d ",(unsigned int)(clock()-clockStart));
-	        //rgbToYuv420(rgbBuffers,tbuffers);
-	        encode_one_frame(tbuffers);
-	        //encode_one_frame(tbuffers);
+	        encode_one_frame(tbuffers, ptrSendDataBuf, &encodeDatalen);
+            SendData(Sendbufs, encodeDatalen, NORMAL_PACK);
 	    }
         pthread_mutex_unlock(&g_lock1);
     }
+    usleep(100);
+    SendData(Sendbufs, 0, END_PACK);
 }
 //视频采集循环函数
 int video(int num)
@@ -197,6 +202,7 @@ int video(int num)
             return -1;
         }
     }
+    exitFlag = 1;
     fprintf(stderr,"\n");
     return 0;
 }
@@ -273,7 +279,8 @@ int main(int argc,char **argv)
     tcpToolInit();
     pthread_create(&thread_enc, NULL, pthread_encode, NULL);
     pthread_video(num);
-    usleep(1000);
+    pthread_join(&thread_enc,NULL);
+    sleep(1);
     end_encode();
     end_scale();
     tcpToolEnd();

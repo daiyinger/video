@@ -6,6 +6,7 @@
 #include <sys/types.h> 
 #include <netinet/in.h> 
 #include <sys/socket.h> 
+#include "tcpTool.h"
 
 #define PORT_NUM 10025
 int sockfd = 0;
@@ -63,12 +64,25 @@ int tcpToolInit(void)
    	 }
 } 
 
-int SendData(unsigned char *Buf, int len)
+
+int SendData(unsigned char *Buf, int len, unsigned char flag)
 {
     static int frame = 1;
     int ret;
-    ret = send(new_fd, Buf, len, 0);
-    fprintf(stderr," %d frame: %d\n",len,frame++);
+    int  pos = 0;
+    Buf[pos++] = 0xFF;
+    Buf[pos++] = 0xFF;
+    Buf[pos++] = 0x55;
+    Buf[pos++] = 0xAA;
+    if(flag == NORMAL_PACK)
+    {
+        ret = send(new_fd, Buf, len+4, 0);
+    }
+    else
+    {
+        ret = send(new_fd, Buf, 4, 0);
+    }
+    fprintf(stderr, " %d frame: %d\n",len, frame++);
     return ret;
 }
 
