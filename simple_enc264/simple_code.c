@@ -201,7 +201,7 @@ int encode_init(void)
 	int ret = 0;
 	//int cnt = 0; 
 
-	if((fp_dst = fopen("cuc_ieschool.h264", "wb")) == NULL)
+	if((fp_dst = fopen("123.264", "wb")) == NULL)
 	{
 		fprintf(stderr, "open 264 file!\n");
 		return -1;
