@@ -1060,7 +1060,8 @@ H264LiveVideoServerMediaSubsession::~H264LiveVideoServerMediaSubsession() {
 
 FramedSource* H264LiveVideoServerMediaSubsession
 ::createNewStreamSource(unsigned /*clientSessionId*/, unsigned& estBitrate) {
-  estBitrate = 96;
+  //estBitrate = 96;
+	estBitrate = 96;
   // Create the video source:
   return CamH264VideoStreamFramer::createNew(envir(), NULL);
 }
@@ -1073,11 +1074,16 @@ RTPSink* H264LiveVideoServerMediaSubsession::createNewRTPSink(Groupsock* rtpGrou
 
 char const* H264LiveVideoServerMediaSubsession::sdpLines()
 {
-    return fSDPLines = 
+	return fSDPLines = 
+        "m=video 0 RTP/AVP 96\r\n"
+        "c=IN IP4 0.0.0.0\r\n"
+        "b=AS:96\r\n"
+        "a=rtpmap:96 H264\r\n";
+    /*return fSDPLines = 
         "m=video 0 RTP/AVP 96\r\n"
         "c=IN IP4 0.0.0.0\r\n"
         "b=AS:96\r\n"
         "a=rtpmap:96 H264/90000\r\n"
         "a=fmtp:96 packetization-mode=1;profile-level-id=000000;sprop-parameter-sets=H264\r\n"
-        "a=control:track1\r\n";
+        "a=control:track1\r\n";*/
 }
