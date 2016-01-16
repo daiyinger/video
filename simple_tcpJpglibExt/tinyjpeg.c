@@ -111,9 +111,9 @@ int jpg2yuv(unsigned char *inbuf,int size, unsigned char *outbuf)
   int pos = 0;
   memcpy(outbuf,components[0],width*height);
   pos += width*height;
-  memcpy(outbuf+pos,components[1],width*height);
+  memcpy(outbuf+pos,components[1],width*height/4);
   pos += width*height/4;
-  memcpy(outbuf+pos,components[2],width*height);
+  memcpy(outbuf+pos,components[2],width*height/4);
 
   /* Only called this if the buffers were allocated by tinyjpeg_decode() */
   tinyjpeg_free(jdec);
