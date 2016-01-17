@@ -182,24 +182,24 @@ int video(int num)
         }
         memcpy(databuf->buf, buffers[buf.index].start, buffers[buf.index].length);
         databuf->datasize = buf.bytesused;
-	databytes += databuf->datasize;
+	    databytes += databuf->datasize;
         cnt++;
         fprintf(stderr,". ");
         //jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers); 
         fprintf(stderr,"-");
-	if(seconds != time((time_t *)NULL))
-	{	
-	    seconds = time((time_t *)NULL);    
-	    fprintf(stderr," data:%d\n",databytes);
-	    databytes = 0;
-	}
+        if(seconds != time((time_t *)NULL))
+        {	
+            seconds = time((time_t *)NULL);    
+            fprintf(stderr," data:%d\n",databytes);
+            databytes = 0;
+        }
 #ifdef WRITE_TO_FILE	
-	sprintf(name,"%d.jpg",cnt);
-	if(cnt > 200)
-	{
-	    writeFile(name,databuf->buf,databuf->datasize);	
-	    usleep(1000000);
-	}
+        sprintf(name,"%d.jpg",cnt);
+        if(cnt > 200)
+        {
+            writeFile(name,databuf->buf,databuf->datasize);	
+            usleep(1000000);
+        }
 #endif 
 	if(ioctl(fd,VIDIOC_QBUF,&buf) == -1)
         {
