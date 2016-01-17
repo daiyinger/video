@@ -164,7 +164,8 @@ int video(int num)
 
         cnt++;
         fprintf(stderr,". ");
-        jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers); 
+        if(jpg2rgb(databuf->buf, buf.bytesused, rgbBuffers) != 0)
+            printf("jpg error\n");
         fprintf(stderr,"-");
         rgbToYuv420(rgbBuffers,tbuffers);
         encode_one_frame(tbuffers);
